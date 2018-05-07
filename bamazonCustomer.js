@@ -14,6 +14,12 @@ const connection = mysql.createConnection({
 
 // Function Declarations
 
+function inquireAboutQuantity(item){
+    console.log(item);
+    connection.end();
+    console.log('Connection ended.')
+};
+
 function inquireAboutItem(itemsInStock){
     inquirer.prompt([
         {
@@ -21,21 +27,26 @@ function inquireAboutItem(itemsInStock){
             message: 'What would you like to purchase? (If nothing, enter "Nothing")',
             name: 'item'
         }
-    ]).then(function(ans){
-        let answer = ans.item.trim().toLowerCase();
+    ]).then(function(res){
+        let answer = res.item.trim().toLowerCase();
         if (answer === 'nothing'){
             console.log('We look forward to seeing you soon.');
             connection.end();
             console.log('Connection ended.');
         } else {
+            let item;
             let inStock = false;
             itemsInStock.forEach(function(row){
-                let item = row.product_name.toLowerCase();
+                item = row.product_name.toLowerCase();
                 if (item === answer) {
                     inStock = true;
-                    console.log('We have that in stock!');
-                    connection.end();
-                    console.log('Connection ended.');
+                    inquireAboutQuantity({
+                        item: row.product_name, 
+                        id: row.item_id, 
+                        department: row.department_name,
+                        stock_quantity: row.stock_quantity,
+                        price: row.price
+                    });
                 }
             });
             if (!inStock) {
