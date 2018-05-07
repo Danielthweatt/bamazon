@@ -15,9 +15,22 @@ const connection = mysql.createConnection({
 // Function Declarations
 
 function inquireAboutQuantity(item){
-    console.log(item);
-    connection.end();
-    console.log('Connection ended.')
+    console.log(`There ${item.stock_quantity === 1 ? 'is' : 'are'} ${item.stock_quantity} "${item.item}"${item.stock_quantity === 1 ? '' : 's'} in stock.`);
+    inquirer.prompt([
+        {
+            type: 'input',
+            message: 'How many would you like to purchase?',
+            name: 'quantity'
+        }
+    ]).then(function(res){
+        console.log(res.quantity);
+        connection.end();
+        console.log('Connection ended.');
+    }).catch(function(error){
+        console.log(`Oh boy, it broke: ${error}`);
+        connection.end();
+        console.log('Connection ended.');
+    });
 };
 
 function inquireAboutItem(itemsInStock){
