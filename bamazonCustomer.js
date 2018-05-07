@@ -14,6 +14,42 @@ const connection = mysql.createConnection({
 
 // Function Declarations
 
+function inquireAboutItem(itemsInStock){
+    inquirer.prompt([
+        {
+            type: 'input',
+            message: 'What would you like to purchase? (If nothing, enter "Nothing")',
+            name: 'item'
+        }
+    ]).then(function(ans){
+        let answer = ans.item.trim().toLowerCase();
+        if (answer === 'nothing'){
+            console.log('We look forward to seeing you soon.');
+            connection.end();
+            console.log('Connection ended.');
+        } else {
+            let inStock = false;
+            itemsInStock.forEach(function(row){
+                let item = row.product_name.toLowerCase();
+                if (item === answer) {
+                    inStock = true;
+                    console.log('We have that in stock!');
+                    connection.end();
+                    console.log('Connection ended.');
+                }
+            });
+            if (!inStock) {
+                console.log("Sorry, we don't have that item. Make sure your spelling is accurate.");
+                inquireAboutItem();
+            }
+        }
+    }).catch(function(error){
+        console.log(`Oh boy, it broke: ${error}`);
+        connection.end();
+        console.log('Connection ended.');
+    });
+};
+
 function displayItemsForSale(){
     connection.query("SELECT * FROM products", function(error, result){
         if (error) throw error;
@@ -29,8 +65,7 @@ function displayItemsForSale(){
         if (count === 0) {
             console.log('Sorry. There is nothing currently in stock.');
         };
-        connection.end();
-        console.log('Connection ended.');
+        inquireAboutItem(result);
     });
 };
 
