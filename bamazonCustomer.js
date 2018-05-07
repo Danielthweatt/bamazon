@@ -14,8 +14,18 @@ const connection = mysql.createConnection({
 
 // Function Declarations
 
+// function updateProductData(id, quantity, cost){
+//     connection.query("UPDATE items SET ? WHERE ?", [{}, {item_id: id}], function(error){
+//         if (error) throw error;
+//         console.log(`Ok. That is $${cost}`);
+//         connection.end();
+//         console.log('Connection ended.');
+//     });
+// };
+
 function inquireAboutQuantity(item){
-    console.log(`There ${item.stock_quantity === 1 ? 'is' : 'are'} ${item.stock_quantity} "${item.item}"${item.stock_quantity === 1 ? '' : 's'} in stock.`);
+    let quantity = item.stock_quantity;
+    console.log(`There ${quantity === 1 ? 'is' : 'are'} ${quantity} "${item.item}"${quantity === 1 ? '' : 's'} in stock.`);
     inquirer.prompt([
         {
             type: 'input',
@@ -23,9 +33,13 @@ function inquireAboutQuantity(item){
             name: 'quantity'
         }
     ]).then(function(res){
-        console.log(res.quantity);
-        connection.end();
-        console.log('Connection ended.');
+        let answer = parseInt(res.quantity);
+        if (answer > quantity) {
+            console.log('Sorry! That is more than we have in stock.');
+            inquireAboutQuantity(item);
+        } else {
+            updateProductData(item.id, answer, (answer * item.price));            
+        }
     }).catch(function(error){
         console.log(`Oh boy, it broke: ${error}`);
         connection.end();
