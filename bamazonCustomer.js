@@ -14,14 +14,14 @@ const connection = mysql.createConnection({
 
 // Function Declarations
 
-// function updateProductData(id, quantity, cost){
-//     connection.query("UPDATE items SET ? WHERE ?", [{}, {item_id: id}], function(error){
-//         if (error) throw error;
-//         console.log(`Ok. That is $${cost}`);
-//         connection.end();
-//         console.log('Connection ended.');
-//     });
-// };
+function updateProductData(id, quantity, cost){
+    connection.query("UPDATE products SET ? WHERE ?", [{stock_quantity: quantity}, {item_id: id}], function(error){
+        if (error) throw error;
+        console.log(`Ok. That is $${cost}`);
+        connection.end();
+        console.log('Connection ended.');
+    });
+};
 
 function inquireAboutQuantity(item){
     let quantity = item.stock_quantity;
@@ -38,7 +38,7 @@ function inquireAboutQuantity(item){
             console.log('Sorry! That is more than we have in stock.');
             inquireAboutQuantity(item);
         } else {
-            updateProductData(item.id, answer, (answer * item.price));            
+            updateProductData(item.id, (quantity - answer), (answer * item.price));            
         }
     }).catch(function(error){
         console.log(`Oh boy, it broke: ${error}`);
@@ -66,14 +66,19 @@ function inquireAboutItem(itemsInStock){
             itemsInStock.forEach(function(row){
                 item = row.product_name.toLowerCase();
                 if (item === answer) {
-                    inStock = true;
-                    inquireAboutQuantity({
-                        item: row.product_name, 
-                        id: row.item_id, 
-                        department: row.department_name,
-                        stock_quantity: row.stock_quantity,
-                        price: row.price
-                    });
+                    if (row.stock_quantity > 0) {
+                        inStock = true;
+                        inquireAboutQuantity({
+                            item: row.product_name, 
+                            id: row.item_id, 
+                            department: row.department_name,
+                            stock_quantity: row.stock_quantity,
+                            price: row.price
+                        });
+                    } else {
+                        console.log("Sorry, we don't have that item in stock.");
+                        inquireAboutItem();
+                    }
                 }
             });
             if (!inStock) {
